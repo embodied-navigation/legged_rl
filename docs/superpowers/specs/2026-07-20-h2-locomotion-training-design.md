@@ -205,3 +205,50 @@ H2 使用独立 runner 配置：
 - 真实机器人通信、控制或安全验证；
 - 多随机种子统计；
 - 已有 H1/G1/Go2 配置重构。
+
+## 12. 本地开发与服务器验证
+
+开发笔记本未安装 Isaac Lab，因此本地只执行：
+
+- 代码编辑；
+- Python 语法和不依赖 Isaac Lab 的静态检查；
+- URDF/XML 与资源路径检查；
+- Git diff、提交和子模块状态检查。
+
+本地静态检查不能替代 Isaac Lab 运行验证，也不能作为 H2 任务可训练或可推理的完成证据。
+
+Isaac Lab 验证统一在 RTX 4090 服务器上进行：
+
+```text
+host: 172.16.1.101
+workspace: /home/gaojie/workspace/legged_rl
+unitree_rl_lab: /home/gaojie/workspace/legged_rl/modules/unitree_rl_lab
+conda environment: env_isaaclab
+```
+
+在服务器终端中进入环境：
+
+```bash
+cd /home/gaojie/workspace/legged_rl/modules/unitree_rl_lab
+conda activate env_isaaclab
+```
+
+服务器负责执行：
+
+- `./unitree_rl_lab.sh -l` 任务注册检查；
+- 单环境创建和重置；
+- 10～20 次迭代短训；
+- 4096 环境、5000 次迭代正式训练；
+- checkpoint 推理；
+- 固定指令集性能评估。
+
+开发期通过 VS Code SFTP 同步到服务器：
+
+```text
+remotePath: /home/gaojie/workspace/legged_rl
+uploadOnSave: true
+```
+
+SFTP 只作为文件传输通道，Git 仍是唯一版本基准。每次服务器验证前必须确认目标文件已上传；正式训练前要求本地代码已经提交，并记录被测 Git commit。训练日志和 checkpoint 保留在服务器，不提交到 Git。
+
+`.vscode/` 不纳入版本控制，避免提交公司内网地址、用户名和服务器路径。如果 SSH/SFTP 或服务器环境不可用，Isaac Lab 验证应明确标记为阻塞，不得用本地静态检查替代。
