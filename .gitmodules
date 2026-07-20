@@ -1,3 +1,6 @@
 [submodule "modules/unitree_rl_lab"]
 	path = modules/unitree_rl_lab
 	url = git@github.com:embodied-navigation/unitree_rl_lab.git
+[submodule "modules/unitree_rl_gym"]
+	path = modules/unitree_rl_gym
+	url = git@github.com:embodied-navigation/unitree_rl_gym.git
