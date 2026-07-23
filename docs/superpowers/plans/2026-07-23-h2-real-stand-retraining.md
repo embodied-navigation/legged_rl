@@ -4,7 +4,7 @@
 
 **Goal:** 使用 H2 实机运动模式的对称化站姿、`0.97 m` 初始高度和实测 PD 参数，重建 `H2_stand.urdf`，更新现有 `Unitree-H2-Velocity` 配置，并在 RTX 4090 服务器从头完成 300 轮冒烟训练、5000 轮正式训练和固定指令集验收。
 
-**Architecture:** 根仓库维护 `H2_stand.urdf`、设计与计划文档；`modules/unitree_rl_lab` 维护资产路径、默认状态、执行器和静态契约测试。任务名、experiment、15维动作、奖励、命令、随机化和 PPO 参数不变。实机站姿写入 `init_state.joint_pos`，不改下肢与腰部 joint origin、axis 或 limit；上半身以对称姿态折叠为 fixed joint。
+**Architecture:** 根仓库维护 `H2_stand.urdf`、设计与计划文档；`modules/unitree_rl_lab` 维护资产路径、默认状态、执行器、H2 runner 稳定性保护和静态契约测试。任务名、experiment、15维动作、奖励、命令、随机化、PPO 网络和优化器不变。实机站姿写入 `init_state.joint_pos`，不改下肢与腰部 joint origin、axis 或 limit；上半身以对称姿态折叠为 fixed joint。
 
 **Tech Stack:** URDF/XML、Python 3、pytest、Isaac Lab、RSL-RL PPO、RTX 4090
 
@@ -19,7 +19,7 @@
 - 不传 `--resume` 或 `--checkpoint` 启动训练。
 - 不删除或覆盖旧日志与 checkpoint。
 - 不提交训练日志、模型、缓存、SFTP 配置或本机环境文件。
-- 不修改 `Unitree-H2-Velocity` 的动作缩放、奖励、命令、随机化、终止条件或 PPO 参数。
+- 不修改 `Unitree-H2-Velocity` 的动作缩放、奖励、命令、随机化、终止条件、PPO 网络或优化器参数。
 - 不修改 URDF 硬限位来提高验收结果。
 - 修改子模块前单独确认其状态；不得覆盖用户已有修改。
 
@@ -261,6 +261,7 @@ git add assets/urdf/h2_description/H2_stand.urdf
 **Files:**
 
 - Modify: `modules/unitree_rl_lab/source/unitree_rl_lab/unitree_rl_lab/assets/robots/unitree.py`
+- Modify: `modules/unitree_rl_lab/source/unitree_rl_lab/unitree_rl_lab/tasks/locomotion/agents/rsl_rl_ppo_cfg.py`
 - Modify: `modules/unitree_rl_lab/README.md`
 - Test: `modules/unitree_rl_lab/test/test_h2_locomotion_static.py`
 
@@ -323,7 +324,24 @@ H2_WAIST_ROLL_PITCH: stiffness=300.0, damping=5.0
 
 把 H2 任务依赖的资产从 `H2_simple.urdf` 更新为 `H2_stand.urdf`。训练命令、任务名、4096环境和5000轮保持不变。
 
-- [ ] **Step 7: 运行完整 H2 静态测试**
+- [ ] **Step 7: 增加 H2 runner 数值稳定性保护**
+
+在 `H2PPORunnerCfg` 中设置：
+
+```python
+clip_actions = 1.0
+policy = RslRlPpoActorCriticCfg(
+    init_noise_std=1.0,
+    noise_std_type="log",
+    actor_hidden_dims=[512, 256, 128],
+    critic_hidden_dims=[512, 256, 128],
+    activation="elu",
+)
+```
+
+测试必须断言这两个稳定性参数，防止恢复为无界动作和可变成负数的 scalar std。
+
+- [ ] **Step 8: 运行完整 H2 静态测试**
 
 Run:
 
@@ -334,13 +352,14 @@ pytest -q test/test_h2_locomotion_static.py
 
 Expected: PASS。
 
-- [ ] **Step 8: 运行子模块静态检查**
+- [ ] **Step 9: 运行子模块静态检查**
 
 Run:
 
 ```bash
 python -m compileall -q \
   source/unitree_rl_lab/unitree_rl_lab/assets/robots/unitree.py \
+  source/unitree_rl_lab/unitree_rl_lab/tasks/locomotion/agents/rsl_rl_ppo_cfg.py \
   test/test_h2_locomotion_static.py
 git diff --check
 git status --short
@@ -348,11 +367,12 @@ git status --short
 
 Expected: compileall 和 diff check PASS；只有本任务文件以及 Task 1 测试提交后的预期差异。
 
-- [ ] **Step 9: 提交子模块实现**
+- [ ] **Step 10: 提交子模块实现**
 
 ```bash
 git add \
   source/unitree_rl_lab/unitree_rl_lab/assets/robots/unitree.py \
+  source/unitree_rl_lab/unitree_rl_lab/tasks/locomotion/agents/rsl_rl_ppo_cfg.py \
   README.md
 git commit -m "feat: use H2 real-stand training parameters"
 ```
