@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 使用 H2 对称固定上半身、原训练下肢默认站姿、`0.97 m` 初始高度和实测 PD 参数，重建 `H2_stand.urdf`，更新现有 `Unitree-H2-Velocity` 配置，并在 RTX 4090 服务器从头完成 300 轮冒烟训练、5000 轮正式训练和固定指令集验收。
+**Goal:** 使用 H2 实机运动模式的对称化站姿、`0.97 m` 初始高度和实测 PD 参数，重建 `H2_stand.urdf`，更新现有 `Unitree-H2-Velocity` 配置，并在 RTX 4090 服务器从头完成 300 轮冒烟训练、5000 轮正式训练和固定指令集验收。
 
-**Architecture:** 根仓库维护 `H2_stand.urdf`、设计与计划文档；`modules/unitree_rl_lab` 维护资产路径、默认状态、执行器和静态契约测试。任务名、experiment、15维动作、奖励、命令、随机化和 PPO 参数不变。下肢沿用原训练默认站姿，不改下肢与腰部 joint origin、axis 或 limit；上半身以对称姿态折叠为 fixed joint。
+**Architecture:** 根仓库维护 `H2_stand.urdf`、设计与计划文档；`modules/unitree_rl_lab` 维护资产路径、默认状态、执行器和静态契约测试。任务名、experiment、15维动作、奖励、命令、随机化和 PPO 参数不变。实机站姿写入 `init_state.joint_pos`，不改下肢与腰部 joint origin、axis 或 limit；上半身以对称姿态折叠为 fixed joint。
 
 **Tech Stack:** URDF/XML、Python 3、pytest、Isaac Lab、RSL-RL PPO、RTX 4090
 
@@ -98,9 +98,21 @@ EXPECTED_FIXED_POSE = {
 ```python
 pos == (0.0, 0.0, 0.97)
 joint_pos == {
-    ".*_hip_pitch_joint": -0.15,
-    ".*_knee_joint": 0.30,
-    ".*_ankle_pitch_joint": -0.15,
+    "left_hip_pitch_joint": 0.065,
+    "left_hip_roll_joint": 0.09,
+    "left_hip_yaw_joint": 0.30,
+    "left_knee_joint": 0.09,
+    "left_ankle_roll_joint": -0.02,
+    "left_ankle_pitch_joint": 0.04,
+    "right_hip_pitch_joint": 0.065,
+    "right_hip_roll_joint": -0.09,
+    "right_hip_yaw_joint": -0.30,
+    "right_knee_joint": 0.09,
+    "right_ankle_roll_joint": 0.02,
+    "right_ankle_pitch_joint": 0.04,
+    "waist_yaw_joint": 0.0,
+    "waist_roll_joint": 0.0,
+    "waist_pitch_joint": 0.08,
 }
 ```
 
@@ -263,22 +275,16 @@ H2_URDF_RELATIVE_PATH = Path("assets/urdf/h2_description/H2_stand.urdf")
 
 不得写成重复目录，也不得使用绝对路径。
 
-- [ ] **Step 2: 更新初始高度并沿用原下肢默认位置**
+- [ ] **Step 2: 更新初始高度和15关节默认位置**
 
-保留旧高度注释，在其下方设置 `0.97 m`；下肢默认位置沿用原训练基线：
+保留旧高度和旧 joint_pos 行为注释，在其下方使用显式关节名写入设计中的完整对称站姿：
 
 ```python
 # pos=(0.0, 0.0, 1.05),
 pos=(0.0, 0.0, 0.97),
-
-joint_pos={
-    ".*_hip_pitch_joint": -0.15,
-    ".*_knee_joint": 0.30,
-    ".*_ankle_pitch_joint": -0.15,
-}
 ```
 
-其余下肢和腰部关节使用默认零位，不得增加 `".*"` catch-all。
+不得用左右正负不同的关节共享一个 regex 值，不得增加 `".*"` catch-all。
 
 - [ ] **Step 3: 更新 Hip 和 Knee PD**
 
