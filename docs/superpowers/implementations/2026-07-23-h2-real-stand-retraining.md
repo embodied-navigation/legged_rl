@@ -166,3 +166,30 @@ python scripts/rsl_rl/evaluate_h2.py --headless \
 - 其余多数场景持续出现左右 ankle roll soft-limit violation。
 - `mixed` 场景存活率只有 `80.86%`，并伴随膝、踝越限以及 pelvis/knee 非期望接触。
 - 不应通过放宽 URDF 硬限位消除失败；下一轮应优先检查接触过滤、左膝动作/关节映射、默认姿态对 yaw 的偏置以及相应奖励约束。
+
+### Seed 43 独立复评
+
+在服务器无并行训练或评估进程时，使用相同 checkpoint、256 environments、每场景20秒和 `seed=43` 重新评估，结果保存于：
+
+```text
+/tmp/h2_2026-07-25_11-29-25_eval_seed43.json
+```
+
+| 指标 | Seed 42 | Seed 43 | 标准 |
+|---|---:|---:|---:|
+| 20秒 episode 存活率 | `97.61%` | `97.56%` | `>= 90%` |
+| XY 线速度 RMSE | `0.1801` | `0.2116` | `<= 0.20` |
+| Yaw 角速度 RMSE | `0.1552` | `0.1764` | `<= 0.25` |
+| 非期望接触 episode 比例 | `100%` | `100%` | `<= 5%` |
+| Soft-limit invalid rate | `4.5637%` | `2.4266%` | `<= 0.1%` |
+
+Seed 43 的主要分场景结果：
+
+- `backward` 线速度 RMSE：`0.2986`；
+- `left/right` 线速度 RMSE：`0.2635/0.2526`；
+- `yaw_left/yaw_right` Yaw RMSE：`0.3582/0.2751`；
+- `yaw_left` invalid rate：`13.4934%`，其中左膝越限 `33,151` 次；
+- `mixed` 存活率：`80.47%`，invalid rate：`2.8790%`；
+- 所有场景仍报告 torso 和左右 shoulder roll 非期望接触。
+
+两次 seed 的数值有波动，但结论一致：策略站立和总体存活稳定，前进效果可见；后退、横移和 yaw 指令跟踪不足，接触与 soft-limit 验收稳定失败。Seed 43 的 aggregate XY RMSE 也超过基本标准，因此失败不是 seed 42 的偶然样本。
