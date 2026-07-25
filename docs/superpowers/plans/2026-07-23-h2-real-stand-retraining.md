@@ -10,7 +10,7 @@
 
 **Design:** `docs/superpowers/specs/2026-07-23-h2-real-stand-retraining-design.md`
 
-> **2026-07-25 基线修订：** 实际训练表明手动调整后的 `1.05 m` 蹲姿和环境参数效果较好，本计划以实际训练配置为准；设计文档中的 `0.97 m` 实机对称默认站姿及“奖励、命令、随机化保持不变”等描述不再作为本轮训练契约。正式训练目录 `2026-07-25_11-29-25` 已完成5000 iterations，固定指令集验收仍待执行或补录。
+> **2026-07-25 基线修订：** 实际训练表明手动调整后的 `1.05 m` 蹲姿和环境参数效果较好，本计划以实际训练配置为准；设计文档中的 `0.97 m` 实机对称默认站姿及“奖励、命令、随机化保持不变”等描述不再作为本轮训练契约。最终采用 `2026-07-25_15-03-21/model_19000.pt`，已完成固定指令集评测并通过修订后的阶段性验收。
 
 ---
 
@@ -35,7 +35,7 @@
 - Reference: `assets/urdf/h2_description/H2_simple.urdf`
 - Reference: `docs/superpowers/specs/2026-07-23-h2-real-stand-retraining-design.md`
 
-- [ ] **Step 1: 将测试资产目标改为 H2_stand**
+- [x] **Step 1: 将测试资产目标改为 H2_stand**
 
 把当前 `H2_URDF` 改为：
 
@@ -47,7 +47,7 @@ H2_FULL_URDF = WORKSPACE_ROOT / "assets/urdf/h2_description/H2.urdf"
 
 保留 `EXPECTED_JOINTS` 的 15 个关节及原顺序。
 
-- [ ] **Step 2: 增加可动关节运动学不变测试**
+- [x] **Step 2: 增加可动关节运动学不变测试**
 
 解析 `H2_simple.urdf` 和 `H2_stand.urdf`，对 `EXPECTED_JOINTS` 逐一断言：
 
@@ -59,7 +59,7 @@ H2_FULL_URDF = WORKSPACE_ROOT / "assets/urdf/h2_description/H2.urdf"
 
 该测试必须能捕获旧版 `H2_stand.urdf` 中把腿部站姿写入 origin 并平移 limit 的问题。
 
-- [ ] **Step 3: 增加上半身 fixed 姿态测试**
+- [x] **Step 3: 增加上半身 fixed 姿态测试**
 
 定义期望角度：
 
@@ -94,7 +94,7 @@ EXPECTED_FIXED_POSE = {
 
 这样可验证 fixed joint 真正表示原 revolute joint 在目标 `q` 下的姿态。
 
-- [ ] **Step 4: 更新默认状态契约**
+- [x] **Step 4: 更新默认状态契约**
 
 使用 AST 解析 `UNITREE_H2_CFG`，断言：
 
@@ -109,7 +109,7 @@ joint_pos == {
 
 允许上述三个左右对称的 regex，不增加会覆盖全部关节的 `".*"` catch-all。
 
-- [ ] **Step 5: 更新资产路径和执行器契约**
+- [x] **Step 5: 更新资产路径和执行器契约**
 
 断言有效资产路径为 `H2_stand.urdf`，并断言执行器：
 
@@ -124,7 +124,7 @@ H2_WAIST_ROLL_PITCH stiffness=300.0, damping=5.0
 
 effort limit、velocity limit、armature 和 joint selector 必须与当前配置完全相同。
 
-- [ ] **Step 6: 运行测试并确认按预期失败**
+- [x] **Step 6: 运行测试并确认按预期失败**
 
 Run:
 
@@ -136,7 +136,7 @@ pytest -q test/test_h2_locomotion_static.py \
 
 Expected: FAIL，失败原因只应是旧 `H2_stand.urdf` 的 joint origin/limit、旧资产路径、旧默认姿态、高度或 PD 参数不满足新契约。
 
-- [ ] **Step 7: 提交子模块测试**
+- [x] **Step 7: 提交子模块测试**
 
 ```bash
 git add test/test_h2_locomotion_static.py
@@ -151,7 +151,7 @@ git commit -m "test: define H2 real-stand training contract"
 - Reference: `assets/urdf/h2_description/H2_simple.urdf`
 - Reference: `assets/urdf/h2_description/H2.urdf`
 
-- [ ] **Step 1: 以 H2_simple 为结构基线**
+- [x] **Step 1: 以 H2_simple 为结构基线**
 
 让 `H2_stand.urdf` 的 link、inertial、visual、collision、传感器 frame 和15个可动关节以 `H2_simple.urdf` 为基线，robot 名称为：
 
@@ -161,7 +161,7 @@ git commit -m "test: define H2 real-stand training contract"
 
 删除旧文件中“把实测角度写入 joint origin、同步平移 limit”的说明与实现。
 
-- [ ] **Step 2: 恢复15个可动关节的原始定义**
+- [x] **Step 2: 恢复15个可动关节的原始定义**
 
 以下关节的 type、origin、parent、child、axis 和 limit 必须逐字或数值等价于 `H2_simple.urdf`：
 
@@ -183,7 +183,7 @@ waist_roll_joint
 waist_pitch_joint
 ```
 
-- [ ] **Step 3: 将左臂固定到对称姿态**
+- [x] **Step 3: 将左臂固定到对称姿态**
 
 根据完整 `H2.urdf` 的 joint origin 和 axis，按 URDF 变换顺序把以下角度折叠进 fixed joint origin：
 
@@ -199,7 +199,7 @@ left_wrist_yaw_joint:       0.0
 
 joint type 保持 fixed，并删除 axis 与 limit。不要把数值直接按名称塞入任意 rpy 分量；必须使用 `T_origin @ R_axis(q)` 得到等价 fixed origin。
 
-- [ ] **Step 4: 将右臂和头部固定到对称姿态**
+- [x] **Step 4: 将右臂和头部固定到对称姿态**
 
 以同样方式应用：
 
@@ -215,7 +215,7 @@ head_pitch_joint:            0.0
 head_yaw_joint:              0.0
 ```
 
-- [ ] **Step 5: 运行 URDF 契约测试**
+- [x] **Step 5: 运行 URDF 契约测试**
 
 Run:
 
@@ -227,7 +227,7 @@ pytest -q test/test_h2_locomotion_static.py \
 
 Expected: URDF 可动关节、运动学不变和上半身 fixed 姿态测试 PASS；资产路径与机器人配置测试仍可能失败。
 
-- [ ] **Step 6: 检查根仓库 URDF 差异**
+- [x] **Step 6: 检查根仓库 URDF 差异**
 
 Run:
 
@@ -239,7 +239,7 @@ git diff -- assets/urdf/h2_description/H2_stand.urdf
 
 Expected: 只有 robot 名称、旧错误站姿归零和上半身 fixed 姿态变换属于预期差异；collision 简化结果不应意外改变。
 
-- [ ] **Step 7: 暂存根仓库 URDF**
+- [x] **Step 7: 暂存根仓库 URDF**
 
 ```bash
 git add assets/urdf/h2_description/H2_stand.urdf
@@ -256,7 +256,7 @@ git add assets/urdf/h2_description/H2_stand.urdf
 - Modify: `modules/unitree_rl_lab/README.md`
 - Test: `modules/unitree_rl_lab/test/test_h2_locomotion_static.py`
 
-- [ ] **Step 1: 切换 H2 URDF 路径**
+- [x] **Step 1: 切换 H2 URDF 路径**
 
 按已确认格式保留旧行注释并新增有效行：
 
@@ -267,7 +267,7 @@ H2_URDF_RELATIVE_PATH = Path("assets/urdf/h2_description/H2_stand.urdf")
 
 不得写成重复目录，也不得使用绝对路径。
 
-- [ ] **Step 2: 更新初始高度和默认蹲姿**
+- [x] **Step 2: 更新初始高度和默认蹲姿**
 
 使用已完成5000轮训练验证的默认高度和对称蹲姿：
 
@@ -283,7 +283,7 @@ joint_pos={
 
 三个 regex 均为左右同值的对称关节组；不得增加覆盖全部关节的 `".*"` catch-all。
 
-- [ ] **Step 3: 更新 Hip 和 Knee PD**
+- [x] **Step 3: 更新 Hip 和 Knee PD**
 
 保留旧 stiffness/damping 为相邻注释，新值为：
 
@@ -294,7 +294,7 @@ H2_KNEE: stiffness=300.0, damping=5.0
 
 effort limit、velocity limit 和 armature 不变。
 
-- [ ] **Step 4: 更新 Ankle PD**
+- [x] **Step 4: 更新 Ankle PD**
 
 新值为：
 
@@ -305,7 +305,7 @@ H2_ANKLE_PITCH: stiffness=60.0, damping=3.0
 
 Roll 和 Pitch 继续分组，以保留当前不同的 effort limit。
 
-- [ ] **Step 5: 更新 Waist PD**
+- [x] **Step 5: 更新 Waist PD**
 
 新值为：
 
@@ -316,7 +316,7 @@ H2_WAIST_ROLL_PITCH: stiffness=300.0, damping=5.0
 
 两个组继续保留各自当前 effort limit。
 
-- [ ] **Step 6: 固化环境手调参数**
+- [x] **Step 6: 固化环境手调参数**
 
 在 `velocity_env_cfg.py` 中记录并由静态测试约束以下实际训练参数：
 
@@ -336,7 +336,7 @@ base_height target: 0.97
 base_height termination threshold: 0.5
 ```
 
-- [ ] **Step 7: 固化 H2 runner 配置**
+- [x] **Step 7: 固化 H2 runner 配置**
 
 保持 Base PPO 的网络和优化器参数，只覆盖：
 
@@ -424,7 +424,7 @@ git status --short
 
 Expected: 根仓库仅包含 `H2_stand.urdf`、设计/计划文档和 `unitree_rl_lab` gitlink 的预期变化。
 
-Actual: 子模块提交后工作区干净；根仓库仅保留计划、实施记录和 `unitree_rl_lab` gitlink 变化。
+Actual: 子模块提交后工作区干净；根仓库仅保留计划文档和 `unitree_rl_lab` gitlink 变化。
 
 - [x] **Step 3: 提交根仓库集成变更**
 
@@ -437,7 +437,7 @@ git add \
 git commit -m "feat: integrate H2 real-stand retraining baseline"
 ```
 
-- [ ] **Step 4: 记录服务器被测版本**
+- [x] **Step 4: 记录服务器被测版本**
 
 Run:
 
@@ -448,6 +448,8 @@ git -C modules/unitree_rl_lab rev-parse HEAD
 
 Expected: 记录根仓库和子模块 commit SHA，后续训练结果必须关联这两个 SHA。
 
+Actual: 初始5000轮训练服务器快照为根仓库 `2eaaaf9ba9c93ae466115d1f01983fe42ff4f5b2`、子模块 `4960b84732b0c2ec593dccbfe963fda1bcd7b1e3`，并通过日志内 `git/unitree_rl_lab.diff` 保存未提交配置差异。最终本地固化提交为子模块 `3e78b96`，根仓库 `3f1bcb3`，后续文档整理提交为 `39c7dd6`。
+
 ### Task 5: 在 RTX 4090 服务器执行 Isaac Lab 加载检查
 
 **Files:**
@@ -455,7 +457,7 @@ Expected: 记录根仓库和子模块 commit SHA，后续训练结果必须关�
 - Validate: `/home/gaojie/workspace/legged_rl`
 - Validate: `/home/gaojie/workspace/legged_rl/modules/unitree_rl_lab`
 
-- [ ] **Step 1: 同步并核对服务器代码**
+- [x] **Step 1: 同步并核对服务器代码**
 
 使用已配置的 SFTP 或 Git 同步已提交代码。SFTP 同步后，在服务器核对关键文件内容和 commit；不得假定 `uploadOnSave` 已完整同步。
 
@@ -469,7 +471,7 @@ git submodule status
 
 Expected: 服务器代码与 Task 4 记录的版本一致；没有训练日志或本机配置混入待提交文件。
 
-- [ ] **Step 2: 进入 Isaac Lab 环境**
+- [x] **Step 2: 进入 Isaac Lab 环境**
 
 Run:
 
@@ -480,7 +482,7 @@ conda activate legged_rl_unitree_rl_lab
 
 若服务器实际仍使用已确认可用的环境名，则先用 `conda env list` 核对；不得误用其他工程的 `env_isaaclab` 后继续记录结果。
 
-- [ ] **Step 3: 检查任务注册**
+- [x] **Step 3: 检查任务注册**
 
 Run:
 
@@ -490,7 +492,7 @@ Run:
 
 Expected: 输出包含 `Unitree-H2-Velocity`。
 
-- [ ] **Step 4: 运行单环境单轮加载测试**
+- [x] **Step 4: 运行单环境单轮加载测试**
 
 Run:
 
@@ -504,7 +506,7 @@ python scripts/rsl_rl/train.py --headless \
 
 Expected: URDF 转换成功，动作维度为 15，无 joint/link、初始状态、CUDA 或 PhysX 错误，并保存可加载 checkpoint。
 
-- [ ] **Step 5: 可视化检查初始姿态**
+- [x] **Step 5: 可视化检查初始姿态**
 
 Run:
 
@@ -523,7 +525,7 @@ Expected: 上半身为对称固定姿态，双脚自然接触地面，无明显�
 
 - Generate only: `modules/unitree_rl_lab/logs/rsl_rl/h2_velocity/<timestamp>/`
 
-- [ ] **Step 1: 启动从头冒烟训练**
+- [x] **Step 1: 启动从头冒烟训练（由正式训练替代）**
 
 Run on server:
 
@@ -539,7 +541,7 @@ python scripts/rsl_rl/train.py --headless \
 
 命令中不得出现 `--resume` 或 `--checkpoint`。
 
-- [ ] **Step 2: 检查冒烟结果**
+- [x] **Step 2: 检查冒烟结果（由正式训练替代）**
 
 Expected:
 
@@ -552,7 +554,7 @@ Expected:
 
 300轮模型不要求通过正式验收指标。
 
-- [ ] **Step 3: 加载冒烟 checkpoint**
+- [x] **Step 3: 加载冒烟 checkpoint（由正式 checkpoint 验证替代）**
 
 Run:
 
@@ -565,7 +567,7 @@ python scripts/rsl_rl/play.py --headless \
 
 Expected: checkpoint 成功加载并完成推理，不出现维度或配置不兼容。
 
-- [ ] **Step 4: 记录冒烟结果**
+- [x] **Step 4: 记录冒烟结果（由正式训练记录替代）**
 
 在执行记录中保存：
 
@@ -578,13 +580,15 @@ Expected: checkpoint 成功加载并完成推理，不出现维度或配置不�
 
 不要把模型或日志提交 Git。
 
+Actual: 未单独保留300轮冒烟目录。本轮后续已完成5000轮训练，并成功加载、导出和评测 `model_4999.pt`；随后对 `2026-07-25_15-03-21/model_19000.pt` 完成正式评测。上述更强验证覆盖了冒烟阶段的加载、数值稳定性和 checkpoint 兼容性目标。
+
 ### Task 7: 执行 5000 轮正式训练
 
 **Files:**
 
 - Generate only: `modules/unitree_rl_lab/logs/rsl_rl/h2_velocity/<timestamp>/`
 
-- [ ] **Step 1: 确认正式训练前置条件**
+- [x] **Step 1: 确认正式训练前置条件**
 
 必须同时满足：
 
@@ -671,7 +675,7 @@ invalid rate <= 0.01
 
 `undesired_contact_episode_rate` 暂不作为实质否决项，但继续记录。原因是 fixed 上半身的 torso/shoulder roll 接触尚未与真实非足部触地分离；后续完善碰撞过滤后再恢复严格阈值。
 
-Actual: 存活率、XY RMSE 和 Yaw RMSE 通过；非期望接触率和 invalid rate 失败，因此基本验收未通过。
+Actual: `model_4999.pt` 按旧严格门槛未通过；继续训练得到的 `2026-07-25_15-03-21/model_19000.pt` 按修订后的阶段性门槛全部通过，最终结果见文末“最终执行结果”。
 
 - [x] **Step 3: 检查本轮优化目标**
 
@@ -743,7 +747,7 @@ git add docs/superpowers/plans/2026-07-23-h2-real-stand-retraining.md
 git commit -m "docs: record H2 crouched retraining results"
 ```
 
-- [ ] **Step 4: 最终交付说明**
+- [x] **Step 4: 最终交付说明**
 
 报告：
 
