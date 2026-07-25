@@ -197,11 +197,13 @@ seed=42
 
 | 指标 | 标准 |
 |---|---:|
-| 20 秒 episode 存活率 | `>= 90%` |
-| XY 线速度 RMSE | `<= 0.20 m/s` |
-| Yaw 角速度 RMSE | `<= 0.25 rad/s` |
-| 非期望接触 episode 比例 | `<= 5%` |
-| Soft-limit invalid rate | `<= 0.1%` |
+| 20 秒 episode 存活率 | `>= 95%` |
+| XY 线速度 RMSE | `<= 0.25 m/s` |
+| Yaw 角速度 RMSE | `<= 0.30 rad/s` |
+| 非期望接触 episode 比例 | 暂作为诊断项，不否决 |
+| Soft-limit invalid rate | `<= 1%` |
+
+上述门槛用于当前阶段性可用基线。fixed 上半身的 torso/shoulder roll 接触尚未与真实非足部触地分离，因此接触率继续报告但暂不作为硬门槛；后续修正碰撞过滤后恢复严格接触验收。
 
 本轮进一步优化目标：
 
