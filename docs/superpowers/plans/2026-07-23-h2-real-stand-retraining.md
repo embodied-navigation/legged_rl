@@ -704,9 +704,9 @@ Actual: `yaw_left` 左膝越限和左右转向不对称最突出；多数场景�
 
 **Files:**
 
-- Create: `docs/superpowers/implementations/2026-07-23-h2-real-stand-retraining.md`
+- Modify: `docs/superpowers/plans/2026-07-23-h2-real-stand-retraining.md`
 
-- [x] **Step 1: 编写简短实施记录**
+- [x] **Step 1: 在计划中补充实施记录**
 
 记录：
 
@@ -721,7 +721,7 @@ Actual: `yaw_left` 左膝越限和左右转向不对称最突出；多数场景�
 
 不得把完整训练日志或模型复制进仓库。
 
-Actual: 已创建实施记录并写入实际训练配置、5000轮训练目录、本地检查结果及待补评估字段；未复制训练产物。
+Actual: 实施结果直接记录在本计划中，不创建独立 `implementations/` 目录；未复制训练产物。
 
 - [x] **Step 2: 运行最终检查**
 
@@ -734,13 +734,13 @@ git status --short
 git -C modules/unitree_rl_lab status --short
 ```
 
-Expected: 实施记录和修订计划是文档变化，子模块工作区干净，根仓库 gitlink 指向已提交的子模块实现。
+Expected: 修订计划是文档变化，子模块工作区干净，根仓库 gitlink 指向已提交的子模块实现。
 
-- [x] **Step 3: 提交实施记录**
+- [x] **Step 3: 提交计划与执行结果**
 
 ```bash
-git add docs/superpowers/implementations/2026-07-23-h2-real-stand-retraining.md
-git commit -m "docs: record H2 real-stand retraining results"
+git add docs/superpowers/plans/2026-07-23-h2-real-stand-retraining.md
+git commit -m "docs: record H2 crouched retraining results"
 ```
 
 - [ ] **Step 4: 最终交付说明**
@@ -753,3 +753,32 @@ git commit -m "docs: record H2 real-stand retraining results"
 - 冒烟、正式训练和评估结果；
 - 未提交的训练产物位置；
 - 是否仍需推送分支或创建 PR。
+
+## 最终执行结果
+
+当前阶段采用 `2026-07-25_15-03-21/model_19000.pt` 作为可用基线。正式评测使用256 environments、每场景20秒、seed 42，以及以下固定命令：
+
+```text
+forward: 0.5 m/s
+backward: -0.3 m/s
+left/right: ±0.3 m/s
+yaw_left/yaw_right: ±0.5 rad/s
+```
+
+聚合结果：
+
+| 指标 | 结果 | 阶段性标准 | 判定 |
+|---|---:|---:|---|
+| 20秒 episode 存活率 | `98.29%` | `>= 95%` | 通过 |
+| XY 线速度 RMSE | `0.1637 m/s` | `<= 0.25 m/s` | 通过 |
+| Yaw 角速度 RMSE | `0.1569 rad/s` | `<= 0.30 rad/s` | 通过 |
+| 非期望接触 episode 比例 | `100%` | 诊断项 | 不否决 |
+| Soft-limit invalid rate | `0.6839%` | `<= 1%` | 通过 |
+
+评测 JSON 保存在101服务器：
+
+```text
+/tmp/h2_2026-07-25_15-03-21_model_19000_eval_seed42.json
+```
+
+本地静态验证为 `21 passed`，`compileall` 和 `git diff --check` 均通过。torso/shoulder roll 接触、ankle roll 越限和 mixed 场景稳定性作为后续优化项，不阻塞本轮收尾。模型、TensorBoard 日志和评测 JSON 不提交仓库。
