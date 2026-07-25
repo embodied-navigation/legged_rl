@@ -10,6 +10,41 @@
 
 ---
 
+## Mandatory Isaac training environment
+
+所有依赖 Isaac Lab、Isaac Sim、PhysX、CUDA 或 RSL-RL 运行时的验证与训练必须在 101 服务器执行：
+
+```text
+SSH host: gaojie@172.16.1.101
+root workspace: /home/gaojie/workspace/legged_rl
+unitree_rl_lab: /home/gaojie/workspace/legged_rl/modules/unitree_rl_lab
+conda environment: legged_rl_unitree_rl_lab
+```
+
+进入服务器训练环境：
+
+```bash
+ssh gaojie@172.16.1.101
+cd /home/gaojie/workspace/legged_rl/modules/unitree_rl_lab
+conda activate legged_rl_unitree_rl_lab
+```
+
+如果环境名发生变化，必须先用 `conda env list` 找到服务器上已经验证可用的 Isaac Lab 环境，并在训练记录中写明实际环境名；不得在未验证的环境中继续执行并把结果计入验收。
+
+本地开发机只负责代码编辑、URDF/XML 检查、Python 静态测试、`compileall`、`git diff --check` 和 Git 状态检查。本地静态 shape 契约不能作为 Isaac 环境成功创建、无自碰撞/NaN、可训练或验收通过的证据。
+
+在执行服务器验证前，先通过 Git 同步已经提交且远端可获取的根仓库和子模块分支，然后在 101 服务器记录：
+
+```bash
+cd /home/gaojie/workspace/legged_rl
+git status --short
+git rev-parse HEAD
+git submodule status
+git -C modules/unitree_rl_lab rev-parse HEAD
+```
+
+服务器工作区必须指向本计划的被测提交，且不能混入未记录的训练配置差异。checkpoint、TensorBoard 日志、评估 JSON、缓存和转换产物保留在 101 服务器，不提交仓库。
+
 ## File map
 
 ### Root repository
@@ -1101,7 +1136,7 @@ Do not commit the root README from inside the submodule. It will be committed wi
 
 - [ ] **Step 1: Run all local static tests**
 
-Run:
+Run on the local development machine:
 
 ```bash
 cd modules/unitree_rl_lab
@@ -1112,7 +1147,24 @@ git diff --check
 
 Expected: PASS. The Sim2Sim tests must remain unchanged because deployment is still 15-DoF.
 
-- [ ] **Step 2: Run repository task discovery where Isaac Lab is available**
+- [ ] **Step 2: Synchronize and verify the exact code under test on the 101 server**
+
+Run:
+
+```bash
+ssh gaojie@172.16.1.101
+cd /home/gaojie/workspace/legged_rl
+git status --short
+git rev-parse HEAD
+git submodule status
+git -C modules/unitree_rl_lab rev-parse HEAD
+cd modules/unitree_rl_lab
+conda activate legged_rl_unitree_rl_lab
+```
+
+Expected: the root and submodule SHAs match the remotely accessible implementation commits selected for this run; no uncommitted configuration changes are present. Record both SHAs with every training and evaluation result.
+
+- [ ] **Step 3: Run repository task discovery on the 101 server**
 
 Run:
 
@@ -1128,7 +1180,7 @@ Unitree-H2-29dof-Velocity
 Unitree-H2-Velocity
 ```
 
-- [ ] **Step 3: Run 15-DoF compatibility smoke tests**
+- [ ] **Step 4: Run 15-DoF compatibility smoke tests on the 101 server**
 
 Run:
 
@@ -1144,7 +1196,7 @@ python scripts/rsl_rl/train.py --headless \
 
 Expected: both construct 15-joint/15-action environments without NaN/Inf and write to `h2_15dof_velocity`.
 
-- [ ] **Step 4: Run the 29-DoF shape smoke test**
+- [ ] **Step 5: Run the 29-DoF shape smoke test on the 101 server**
 
 Run:
 
@@ -1166,7 +1218,7 @@ policy action: 29
 
 The run must produce no NaN/Inf, joint-regex mismatch, missing actuator, or self-collision initialization error.
 
-- [ ] **Step 5: Run staged training checkpoints**
+- [ ] **Step 6: Run staged training checkpoints on the 101 server**
 
 Run 300 iterations first:
 
@@ -1186,7 +1238,7 @@ python scripts/rsl_rl/train.py --headless \
 
 Do not start the 5000-iteration run until the 1000-iteration checkpoint passes those qualitative gates.
 
-- [ ] **Step 6: Run formal training and fixed-command evaluation**
+- [ ] **Step 7: Run formal training and fixed-command evaluation on the 101 server**
 
 Run:
 
@@ -1213,9 +1265,28 @@ invalid_count        == 0
 
 The JSON must also contain upper-body RMS velocities, head angle RMS, action saturation rate, mean absolute joint power, and undesired-contact rate.
 
-- [ ] **Step 7: Record unavailable validation**
+- [ ] **Step 8: Preserve and report 101-server evidence**
 
-If Isaac Lab, Isaac Sim, an NVIDIA GPU, or the server environment is unavailable, do not fake Steps 2–6. Record each skipped command and the missing dependency in the final handoff; local static success is not evidence that the task trains.
+Record:
+
+```text
+server: gaojie@172.16.1.101
+root commit SHA
+unitree_rl_lab commit SHA
+conda environment
+GPU model and driver
+training log directory
+final checkpoint path
+evaluation JSON path
+wall-clock duration
+seed and num_envs
+```
+
+Keep generated artifacts on the 101 server. Commit only documentation that records reproducible commands, SHAs, metrics, and artifact paths; do not add checkpoint, ONNX, TensorBoard logs, or evaluation JSON.
+
+- [ ] **Step 9: Record unavailable validation**
+
+If the 101 server, its verified Isaac environment, or its GPU runtime is unavailable, do not substitute the local laptop and do not fake Steps 2–8. Record each skipped command and the exact missing server dependency in the final handoff; local static success is not evidence that the task trains.
 
 ### Task 8: Finalize submodule and root integration
 
