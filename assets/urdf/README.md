@@ -6,7 +6,12 @@
 
 H2 模型位于 `h2_description/`：
 
-- `H2.urdf`：使用 STL 网格的机器人描述，适合检查几何结构和碰撞模型。
+- `H2_29dof.urdf`：使用 STL 网格的 29-DoF 策略/31 活动关节机器人描述。
+- `H2_29dof_backpack.urdf`：默认训练资产，在 29-DoF 模型上增加固定的
+  5.5 kg 背包负载。
+- `H2_15dof.urdf`：上半身固定、腿腰 15 个活动关节的无背包资产。
+- `H2_15dof_backpack.urdf`：默认 15-DoF 训练资产，增加固定的 5.5 kg
+  背包负载。
 - `H2_dae.urdf`：可视化模型使用 DAE 网格，碰撞模型仍使用 STL。
 - `H2_simple.urdf`：保留双腿和腰部 15 个可动关节的训练模型，上半身关节固定，启用的碰撞体均为 primitive。
 - `meshes/`：URDF 引用的 DAE 和 STL 网格文件。
@@ -20,7 +25,7 @@ H2 模型位于 `h2_description/`：
 安装 MuJoCo Python 包后，可以从仓库根目录打开 URDF：
 
 ```bash
-python -m mujoco.viewer --mjcf assets/urdf/h2_description/H2.urdf
+python -m mujoco.viewer --mjcf assets/urdf/h2_description/H2_29dof_backpack.urdf
 ```
 
 如果需要检查 DAE 可视化网格，可将文件替换为：

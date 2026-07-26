@@ -35,14 +35,16 @@ Sim2Sim 默认使用 DDS domain 1 和 loopback 接口，不连接真实机器人
 
 Isaac Lab 提供两个显式 H2 速度任务：
 
-- `Unitree-H2-15dof-Velocity`：15 个腿部与腰部动作；
-- `Unitree-H2-29dof-Velocity`：29 个腿部、腰部与手臂动作，头部关节由 PD 控制保持；
+- `Unitree-H2-15dof-Velocity`：默认携带固定的 5.5 kg 背包负载，包含 15 个腿部与腰部动作；
+- `Unitree-H2-29dof-Velocity`：默认携带固定的 5.5 kg 背包负载，包含 29 个腿部、腰部与手臂动作，头部关节由 PD 控制保持；
 - `Unitree-H2-Velocity`：兼容性别名，等同于 `Unitree-H2-15dof-Velocity`。
 
 设计取舍和实施步骤分别见：
 
 - [H2 29-DoF 速度任务设计](docs/superpowers/specs/2026-07-25-h2-29dof-velocity-design.md)
 - [H2 29-DoF 速度任务实施计划](docs/superpowers/plans/2026-07-25-h2-29dof-velocity.md)
+- [H2 5.5 kg 背包负载设计](docs/superpowers/specs/2026-07-26-h2-backpack-payload-design.md)
+- [H2 5.5 kg 背包负载实施计划](docs/superpowers/plans/2026-07-26-h2-backpack-payload.md)
 
 当前 H2 Sim2Sim/Sim2Real 部署链路仍仅支持 56 维观测到 15 维动作的 15-DoF 策略，不得加载 29-DoF checkpoint。PD 参数在用于真实硬件前仍须依据 H2 硬件规格复核。
 

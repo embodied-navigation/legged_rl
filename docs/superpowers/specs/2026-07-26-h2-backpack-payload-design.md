@@ -154,7 +154,8 @@ logs/rsl_rl/h2_29dof_velocity/2026-07-26_01-58-44/model_25000.pt
 - 背包资产各增加且只增加一个 fixed joint。
 - 两份背包资产的质量、惯量、box 尺寸和固定变换完全一致。
 - 无背包资产不包含 `backpack_link`。
-- 仓库中不再存在对 `H2_stand.urdf` 或 `H2.urdf` 的有效代码/文档引用。
+- 活动代码和当前用户文档中不再引用 `H2_stand.urdf` 或 `H2.urdf`；历史
+  specs/plans 保留当时的文件名以维持审计记录。
 - 15/29-DoF action 与 observation 静态契约继续通过。
 
 ### 101 server smoke
