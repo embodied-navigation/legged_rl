@@ -1494,10 +1494,10 @@ checkpoint:
 
 ### Task 14: Final evaluation and repository integration
 
-- [ ] Run fixed-command evaluation for the 29-DoF backpack checkpoint.
+- [x] Run fixed-command evaluation for the 29-DoF backpack checkpoint.
 - [ ] Decide whether the 15-DoF 50,000-iteration target is waived or resumed
   with a separately approved stability change.
-- [ ] Record the final evaluation JSON and acceptance metrics.
+- [x] Record the final evaluation JSON and acceptance metrics.
 - [ ] Create and merge the `unitree_rl_lab` backpack PR.
 - [ ] Update the root gitlink to the merged submodule commit.
 - [ ] Create and merge the root backpack PR into `develop`.
@@ -1515,3 +1515,25 @@ driver: 580.159.04
 seed: 42
 training num_envs: 4096
 ```
+
+29-DoF backpack fixed-command evaluation:
+
+```text
+checkpoint:
+/home/gaojie/workspace/legged_rl_h2_backpack/modules/unitree_rl_lab/logs/rsl_rl/h2_29dof_velocity/2026-07-26_16-37-38/model_49998.pt
+
+evaluation JSON:
+/home/gaojie/workspace/legged_rl_h2_backpack/modules/unitree_rl_lab/logs/h2_29dof_backpack_evaluation_49998.json
+
+passed: true
+survival_rate: 0.9970703125
+linear_velocity_rmse: 0.1570363025
+yaw_velocity_rmse: 0.1760876344
+invalid_rate: 0.0041702380
+undesired_contact_episode_rate: 0.0009765625
+upper-body diagnostic invalid_count: 0
+```
+
+The remaining aggregate invalid samples are finite joint-limit diagnostics,
+primarily ankle-roll limit samples. Invalid action and invalid contact counts
+remain zero.
