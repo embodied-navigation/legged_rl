@@ -169,8 +169,12 @@ missing actuator 或初始化错误。
 
 ### Migration training
 
-29-DoF 正式诊断从无背包 25,000 checkpoint 重新恢复，使用 4096 env
-额外训练 300 iterations。重点检查：
+15-DoF 与 29-DoF 的 resume smoke 通过后，各自的正式训练链重新从原始
+无背包 25,000 checkpoint 恢复，使用 4096 env 训练到累计约 50,000
+iterations。因为 RSL-RL 的 `--max_iterations` 表示恢复后的额外迭代数，
+从 `model_25000.pt` 启动时应设置约 25,000，而不是 50,000。
+
+正式长训练先观察前 300 个迁移 iterations，作为在线门控窗口。重点检查：
 
 - survival 与 base-height termination；
 - base pitch/roll；
@@ -180,8 +184,14 @@ missing actuator 或初始化错误。
 - undesired contacts；
 - 背包引起的持续后倾、膝伸直或踝关节补偿。
 
-诊断通过后，从新的背包 checkpoint 继续长训练。15-DoF 若需要长训练，也从
-其独立的背包迁移 checkpoint 继续，严禁交叉加载 15/29-DoF 模型。
+前 300 个迁移 iterations 通过后，不重启、不更换基线，继续同一背包训练链
+直到累计约 50,000 iterations。15-DoF 与 29-DoF 必须使用各自独立的
+checkpoint 和日志目录，严禁交叉加载模型。
+
+最终 checkpoint 的实际文件名由 RSL-RL 的零基编号和保存时机决定，可能是
+`model_49999.pt`、`model_49998.pt` 或相邻编号。验收以训练日志显示的累计
+迭代数和实际生成的最终文件为准，不为得到字面上的 `50000.pt` 而重命名
+checkpoint。
 
 ## Compatibility and scope
 

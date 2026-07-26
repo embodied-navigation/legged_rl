@@ -103,15 +103,20 @@ python scripts/rsl_rl/train.py --headless \
   --checkpoint model_25000.pt
 ```
 
-## Task 7: Run 29-DoF backpack migration gate
+## Task 7: Run backpack migration to 50,000 iterations
 
-- [ ] 重新从原始 29-DoF 无背包 25,000 checkpoint 恢复。
-- [ ] 使用 4096 env 额外训练 300 iterations。
+- [ ] 15-DoF 重新从其原始无背包 25,000 checkpoint 恢复。
+- [ ] 29-DoF 重新从其原始无背包 25,000 checkpoint 恢复。
+- [ ] 两者均使用 4096 env，设置约 25,000 个额外 iterations，使累计训练
+  达到约 50,000。
+- [ ] 将每个正式训练链的前 300 个迁移 iterations 作为在线门控窗口。
 - [ ] 检查 survival、base-height termination、base pitch/roll。
 - [ ] 检查 linear/yaw tracking、踝关节限位和 action saturation。
 - [ ] 检查 undesired contact，以及持续后倾、膝伸直或踝补偿。
-- [ ] 若性能持续退化或出现数值/碰撞问题，停止，不进入长训练。
-- [ ] 若通过，从新的 backpack checkpoint 继续后续长训练；不从头开始。
+- [ ] 若性能持续退化或出现数值/碰撞问题，停止对应任务的长训练。
+- [ ] 若门控通过，保持同一进程/训练链继续到累计约 50,000，不从头开始。
+- [ ] 记录实际最终 checkpoint 文件名；不假设或重命名为字面上的
+  `50000.pt`。
 
 ## Task 8: Record evidence and integrate
 
