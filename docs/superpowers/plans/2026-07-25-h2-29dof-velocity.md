@@ -1390,3 +1390,128 @@ The aggregate invalid samples are finite joint-limit diagnostics, dominated by
 The implemented and statically tested acceptance contract uses
 `invalid_rate <= 0.01`, rather than requiring zero joint-limit samples across
 all environments and scenarios.
+
+---
+
+## Backpack payload extension
+
+The following tasks extend the completed 15/29-DoF implementation with the
+5.5 kg backpack payload described in
+`docs/superpowers/specs/2026-07-26-h2-backpack-payload-design.md`. The
+existing task IDs, reward functions, observation/action contracts, runner
+names, and checkpoint compatibility remain unchanged.
+
+### Task 9: Rename base assets and add backpack variants
+
+- [x] Rename `H2_stand.urdf` to `H2_15dof.urdf`.
+- [x] Rename `H2.urdf` to `H2_29dof.urdf`.
+- [x] Add `H2_15dof_backpack.urdf`.
+- [x] Add `H2_29dof_backpack.urdf`.
+- [x] Add an identical 5.5 kg `backpack_link` and torso fixed joint to both
+  backpack assets.
+- [x] Use the approved `0.16 0.30 0.36` box visual without backpack
+  collision.
+- [x] Verify that movable joint names and ordering remain unchanged.
+
+### Task 10: Switch existing tasks to the backpack assets
+
+- [x] Keep all existing Gym task IDs.
+- [x] Keep the existing runner experiment names.
+- [x] Do not add `H2_USE_BACKPACK`, `--run_name`, or another runtime switch.
+- [x] Make `H2_15dof_backpack.urdf` the default 15-DoF asset.
+- [x] Make `H2_29dof_backpack.urdf` the default 29-DoF asset.
+- [x] Retain the payload-free paths as adjacent comments in `unitree.py`.
+- [x] Keep all rewards, target heights, curricula, and terminations unchanged.
+
+### Task 11: Static and server smoke validation
+
+- [x] Add static tests for filenames, mass, inertia, fixed transform, box
+  dimensions, missing collision, and joint ordering.
+- [x] Run the local H2 static suites: `48 passed, 1 skipped`.
+- [x] Resume the 15-DoF task for two iterations from the existing 25,000
+  checkpoint.
+- [x] Resume the 29-DoF task for two iterations from the existing 25,000
+  checkpoint.
+- [x] Confirm that both runs continue at iteration 25,001 with no shape,
+  actuator, joint mapping, initialization, or NaN errors.
+
+Actual baselines:
+
+```text
+15-DoF:
+/home/gaojie/workspace/legged_rl/modules/unitree_rl_lab/logs/rsl_rl/h2_velocity/2026-07-25_20-51-29/model_25000.pt
+
+29-DoF:
+/home/gaojie/workspace/legged_rl_h2_29dof/modules/unitree_rl_lab/logs/rsl_rl/h2_29dof_velocity/2026-07-26_01-58-44/model_25000.pt
+```
+
+### Task 12: Run 300-iteration backpack migration gates
+
+- [x] Run the 15-DoF gate with 4096 environments.
+- [x] Run the 29-DoF gate with 4096 environments.
+- [x] Confirm full-length episodes and negligible base-height termination for
+  both tasks.
+- [x] Confirm finite rewards, losses, and diagnostics throughout both gates.
+
+Gate checkpoints:
+
+```text
+15-DoF:
+/home/gaojie/workspace/legged_rl_h2_backpack/modules/unitree_rl_lab/logs/rsl_rl/h2_15dof_velocity/2026-07-26_13-27-05/model_25299.pt
+
+29-DoF:
+/home/gaojie/workspace/legged_rl_h2_backpack/modules/unitree_rl_lab/logs/rsl_rl/h2_29dof_velocity/2026-07-26_13-33-05/model_25299.pt
+```
+
+### Task 13: Continue backpack training to about 50,000 iterations
+
+- [ ] Complete the 15-DoF backpack run to about 50,000 iterations.
+- [x] Complete the 29-DoF backpack run to about 50,000 iterations.
+
+The 15-DoF run stopped at iteration 32,448 after the PPO value loss became
+`inf` and the action distribution standard deviation became invalid. The last
+checkpoint saved before the failure is:
+
+```text
+/home/gaojie/workspace/legged_rl_h2_backpack/modules/unitree_rl_lab/logs/rsl_rl/h2_15dof_velocity/2026-07-26_13-40-37/model_32400.pt
+```
+
+Do not resume from the failed optimizer state. Any continuation must start
+from `model_32400.pt` or an earlier finite checkpoint and add an explicitly
+reviewed numerical-stability adjustment.
+
+The 29-DoF run completed normally:
+
+```text
+final iteration: 49998/49999
+mean episode length: 1000
+time_out: 1.0
+base_height termination: 0.0
+value loss: 0.0049
+checkpoint:
+/home/gaojie/workspace/legged_rl_h2_backpack/modules/unitree_rl_lab/logs/rsl_rl/h2_29dof_velocity/2026-07-26_16-37-38/model_49998.pt
+```
+
+### Task 14: Final evaluation and repository integration
+
+- [ ] Run fixed-command evaluation for the 29-DoF backpack checkpoint.
+- [ ] Decide whether the 15-DoF 50,000-iteration target is waived or resumed
+  with a separately approved stability change.
+- [ ] Record the final evaluation JSON and acceptance metrics.
+- [ ] Create and merge the `unitree_rl_lab` backpack PR.
+- [ ] Update the root gitlink to the merged submodule commit.
+- [ ] Create and merge the root backpack PR into `develop`.
+- [ ] Run final status, submodule, and diff checks.
+
+Backpack server evidence:
+
+```text
+server workspace: /home/gaojie/workspace/legged_rl_h2_backpack
+root commit: 462a9cd3b5502f3e55d2ceff59570091e191298b
+unitree_rl_lab commit: b8998f57f4b11d4abbfe7009a4bfd1ca34742bb0
+conda environment: legged_rl_unitree_rl_lab
+GPU: NVIDIA GeForce RTX 4090
+driver: 580.159.04
+seed: 42
+training num_envs: 4096
+```
