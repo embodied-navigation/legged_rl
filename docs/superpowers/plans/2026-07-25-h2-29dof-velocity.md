@@ -1396,10 +1396,10 @@ all environments and scenarios.
 ## Backpack payload extension
 
 The following tasks extend the completed 15/29-DoF implementation with the
-5.5 kg backpack payload described in
-`docs/superpowers/specs/2026-07-26-h2-backpack-payload-design.md`. The
-existing task IDs, reward functions, observation/action contracts, runner
-names, and checkpoint compatibility remain unchanged.
+5.5 kg backpack payload described in the backpack extension section of
+`docs/superpowers/specs/2026-07-25-h2-29dof-velocity-design.md`. The existing
+task IDs, reward functions, observation/action contracts, runner names, and
+checkpoint compatibility remain unchanged.
 
 ### Task 9: Rename base assets and add backpack variants
 
@@ -1498,10 +1498,10 @@ checkpoint:
 - [ ] Decide whether the 15-DoF 50,000-iteration target is waived or resumed
   with a separately approved stability change.
 - [x] Record the final evaluation JSON and acceptance metrics.
-- [ ] Create and merge the `unitree_rl_lab` backpack PR.
-- [ ] Update the root gitlink to the merged submodule commit.
-- [ ] Create and merge the root backpack PR into `develop`.
-- [ ] Run final status, submodule, and diff checks.
+- [x] Create and merge the `unitree_rl_lab` backpack PR.
+- [x] Update the root gitlink to the merged submodule commit.
+- [x] Create and merge the root backpack PR into `develop`.
+- [x] Run final status, submodule, and diff checks.
 
 Backpack server evidence:
 

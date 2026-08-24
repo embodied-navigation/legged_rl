@@ -255,3 +255,113 @@ python scripts/rsl_rl/train.py \
 - 名称中的 29-DoF 表示策略动作维度，物理模型仍有 31 个活动关节；
 - 两个任务依赖根工作区 `assets/urdf/h2_description`，不能从独立子模块克隆直接运行；
 - 29-DoF 第一版仅承诺 Isaac Lab 训练与评估，不承诺部署能力。
+
+## 13. 5.5 kg 背包负载扩展
+
+### 13.1 目标和兼容约束
+
+在原15-DoF和29-DoF速度任务完成后，为两种构型增加固定在躯干后的
+5.5 kg背包负载。背包扩展保持以下接口不变：
+
+- 继续使用 `Unitree-H2-Velocity`、`Unitree-H2-15dof-Velocity` 和
+  `Unitree-H2-29dof-Velocity`，不增加Backpack专用任务ID；
+- 不增加 `H2_USE_BACKPACK` 等运行时资产开关；
+- 不增加 `--run_name`；
+- action/observation契约和runner experiment name不变；
+- 奖励函数、目标高度、速度跟踪权重、课程和终止条件保持不变；
+- 使用已有无背包25,000轮checkpoint作为迁移训练起点，不从头训练。
+
+### 13.2 资产命名和布局
+
+为消除原资产名称中的DoF歧义，基础资产重命名并增加对应背包版本：
+
+```text
+H2_stand.urdf -> H2_15dof.urdf
+H2.urdf       -> H2_29dof.urdf
+
+H2_15dof_backpack.urdf
+H2_29dof_backpack.urdf
+```
+
+最终四份资产的契约如下：
+
+| 资产 | 物理活动关节 | 负载 |
+| --- | ---: | ---: |
+| `H2_15dof.urdf` | 15 | 无 |
+| `H2_29dof.urdf` | 31（策略控制29） | 无 |
+| `H2_15dof_backpack.urdf` | 15 | 5.5 kg |
+| `H2_29dof_backpack.urdf` | 31（策略控制29） | 5.5 kg |
+
+背包资产必须保持对应无背包资产的活动关节名称和顺序，只增加一个固定关节。
+无背包资产继续保留，便于显式切回基线。
+
+### 13.3 背包刚体
+
+背包参考 `/home/csp/H2_with_backpack.urdf` 的质量、惯量和安装位姿。由于参考
+文件中的 `meshes/beibao.STL` 不在工作区内，第一版采用简化box visual：
+
+```xml
+<link name="backpack_link">
+  <inertial>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <mass value="5.5"/>
+    <inertia
+      ixx="0.024298"
+      ixy="0"
+      ixz="-0.000132"
+      iyy="0.013846"
+      iyz="0"
+      izz="0.014324"/>
+  </inertial>
+  <visual>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <box size="0.16 0.30 0.36"/>
+    </geometry>
+  </visual>
+</link>
+
+<joint name="backpack_fixed_joint" type="fixed">
+  <origin xyz="-0.1 0 0.1" rpy="0 0 3.141592653589793"/>
+  <parent link="torso_link"/>
+  <child link="backpack_link"/>
+</joint>
+```
+
+第一版不增加背包collision。背包质量、质心和惯量参与动力学，但不引入背包
+与手臂或躯干的自碰撞；若后续需要训练手臂避障，应单独设计。
+
+### 13.4 迁移训练和验收
+
+15-DoF与29-DoF分别从自己的无背包 `model_25000.pt` 恢复。32环境短运行只
+验证资产、shape和checkpoint兼容性；正式迁移链重新从原checkpoint启动，
+使用4096环境训练到累计约50,000轮：
+
+```text
+无背包 model_25000
+├── 32-env resume smoke（验证分支）
+└── 4096-env backpack migration
+    ├── 前300轮在线门控
+    └── 累计约50,000轮
+```
+
+前300轮重点检查survival、base-height termination、base pitch/roll、速度
+跟踪、踝关节限位、动作饱和、非足部接触，以及背包引起的持续后倾和下肢
+补偿。通过后继续同一训练链，不重启或更换基线。
+
+最终checkpoint以训练日志和实际文件为准；RSL-RL的零基编号可能产生
+`model_49998.pt`、`model_49999.pt`或相邻编号，不为获得字面上的
+`model_50000.pt`重命名文件。
+
+静态验收必须确认：
+
+- 四份URDF均可解析；
+- 无背包15/29-DoF资产分别保持15/31个活动关节；
+- 背包版本与对应无背包版本的活动关节名称和顺序完全一致；
+- 两份背包资产各增加且只增加一个相同的固定背包关节；
+- 两份背包的质量、惯量、box尺寸和固定变换一致；
+- 无背包资产不包含 `backpack_link`；
+- 15/29-DoF action和observation契约继续通过。
+
+背包迁移训练不改变部署协议，也不自动授权Sim2Real。背包策略用于真实机器人
+前必须重新完成Sim2Sim、负载安装和真机安全评审。
