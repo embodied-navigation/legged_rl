@@ -7,3 +7,7 @@
 [submodule "modules/unitree_mujoco"]
 	path = modules/unitree_mujoco
 	url = git@github.com:embodied-navigation/unitree_mujoco.git
+[submodule "modules/deploy"]
+	path = modules/deploy
+	url = git@github.com:embodied-navigation/deploy.git
+	branch = develop

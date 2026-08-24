@@ -4,10 +4,12 @@
 
 ## 仓库定位
 
-本仓库是 Unitree 足式机器人强化学习项目的集成工作区，主要通过 Git 子模块管理两个上游 fork：
+本仓库是 Unitree 足式机器人强化学习项目的集成工作区，主要通过 Git 子模块管理训练、仿真与部署仓库：
 
 - `modules/unitree_rl_lab`：基于 Isaac Lab 的训练、推理与部署代码。
 - `modules/unitree_rl_gym`：基于 Isaac Gym 的训练、推理与部署代码。
+- `modules/unitree_mujoco`：基于 MuJoCo 的 SDK2/DDS Sim2Sim 仿真代码。
+- `modules/deploy`：不依赖训练环境的独立推理、Sim2Sim 与 Sim2Real 部署代码。
 
 根仓库只维护集成层内容，例如子模块版本、`.gitmodules`、文档和工作区级工具。功能代码应在对应子模块中修改并提交，再由根仓库更新子模块引用。
 

@@ -7,6 +7,7 @@
 - `modules/unitree_rl_lab`：[unitreerobotics/unitree_rl_lab](https://github.com/unitreerobotics/unitree_rl_lab) 的 fork，基于 Isaac Lab。
 - `modules/unitree_rl_gym`：[unitreerobotics/unitree_rl_gym](https://github.com/unitreerobotics/unitree_rl_gym) 的 fork，基于 Isaac Gym。
 - `modules/unitree_mujoco`：[unitreerobotics/unitree_mujoco](https://github.com/unitreerobotics/unitree_mujoco) 的 fork，用于 SDK2/DDS Sim2Sim 验证。
+- `modules/deploy`：[embodied-navigation/deploy](https://github.com/embodied-navigation/deploy)，独立提供推理、Sim2Sim 和 Sim2Real 部署代码，不依赖 Isaac Lab 训练环境。
 
 ## 克隆仓库
 
