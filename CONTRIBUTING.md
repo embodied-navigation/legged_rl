@@ -56,6 +56,8 @@ git status --short
 git submodule status
 git -C modules/unitree_rl_lab status --short
 git -C modules/unitree_rl_gym status --short
+git -C modules/unitree_mujoco status --short
+git -C modules/deploy status --short
 ```
 
 根仓库不得引用仅存在于个人本地、临时分支或无法被团队获取的子模块提交。
